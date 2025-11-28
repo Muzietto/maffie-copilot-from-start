@@ -87,6 +87,38 @@
             overflow: auto;
         }
 
+        /* Thumbnails inside left column */
+        .thumbnails {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .thumb {
+            width: 80%; /* 80% of the left column */
+            overflow: hidden;
+            background: #fff;
+            display: block;
+            box-sizing: border-box;
+            border-radius: 6px;
+            padding: 4px;
+        }
+
+        .thumb img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: contain;
+        }
+
+        /* Colored 4px borders for each thumbnail (chosen colors) */
+        .thumbnails .thumb:nth-child(1) { border: 4px solid #ff8a65; }
+        .thumbnails .thumb:nth-child(2) { border: 4px solid #4db6ac; }
+        .thumbnails .thumb:nth-child(3) { border: 4px solid #9575cd; }
+        .thumbnails .thumb:nth-child(4) { border: 4px solid #f06292; }
+
         /* Main area: fills remaining space to the right */
         #main-area {
             flex: 1;
@@ -120,6 +152,13 @@
 
     <div id="content">
         <div id="left-column">
+            <div class="thumbnails" aria-label="thumbnails">
+                <div class="thumb"><img src="svgs/sports.svg" alt="sports thumbnail"></div>
+                <div class="thumb"><img src="svgs/calendar.svg" alt="calendar thumbnail"></div>
+                <div class="thumb"><img src="svgs/butterfly.svg" alt="butterfly thumbnail"></div>
+                <div class="thumb"><img src="svgs/bikini.svg" alt="bikini thumbnail"></div>
+            </div>
+
             <h2>Left column (20% width)</h2>
             <p>Sidebar / navigation. This column occupies 20% of the viewport width (fixed) and is intended for
                 navigation or compact controls.</p>
@@ -131,6 +170,28 @@
                 (approximately 80% of the viewport) and adapts as the viewport size changes.</p>
         </div>
     </div>
+
+    <script>
+        // Compute thumbnail heights so they share the same proportions as #main-area
+        function updateThumbHeights() {
+            const main = document.getElementById('main-area');
+            const thumbs = document.querySelectorAll('.thumb');
+            if (!main || !thumbs.length) return;
+            const rect = main.getBoundingClientRect();
+            // protect against zero height
+            const ratio = rect.height > 0 ? rect.width / rect.height : 1;
+            thumbs.forEach(t => {
+                const w = t.clientWidth;
+                const h = ratio > 0 ? Math.round(w / ratio) : w;
+                t.style.height = h + 'px';
+            });
+        }
+
+        window.addEventListener('load', updateThumbHeights);
+        window.addEventListener('resize', updateThumbHeights);
+        // also update after images load in case they affect layout
+        document.querySelectorAll('.thumb img').forEach(img => img.addEventListener('load', updateThumbHeights));
+    </script>
 </body>
 
 </html>
