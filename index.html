@@ -114,6 +114,12 @@
             object-fit: contain;
         }
 
+        /* Visual state for selected thumbnail: double the border width */
+        .thumb.selected {
+            border-width: 8px !important;
+            background: #eee !important; /* light grey background for selected thumb */
+        }
+
         /* Colored 4px borders for each thumbnail (chosen colors) */
         .thumbnails .thumb:nth-child(1) {
             border: 4px solid #ff8a65;
@@ -144,6 +150,19 @@
             overflow: auto;
         }
 
+        /* Canvas inside main area */
+        #main-canvas {
+            display: block;
+            width: calc(100% - 20px); /* account for requested 10px margin on both sides */
+            height: calc(100% - 20px);
+            margin: 10px; /* interpreted as 10px */
+            padding: 8px; /* inner padding requested */
+            box-sizing: border-box;
+            border: 4px solid green; /* 4px green border */
+            border-radius: 6px; /* 6px radius */
+            background: white;
+        }
+
         /* Small responsive tweak: stack columns on narrow screens */
         @media (max-width: 480px) {
             #content {
@@ -171,15 +190,11 @@
                 <div class="thumb"><img src="svgs/bikini.svg" alt="bikini thumbnail"></div>
             </div>
 
-            <h2>Left column (20% width)</h2>
-            <p>Sidebar / navigation. This column occupies 20% of the viewport width (fixed) and is intended for
-                navigation or compact controls.</p>
+            
         </div>
 
         <div id="main-area">
-            <h1>Main area (remaining width)</h1>
-            <p>Main content area. This area fills the remaining horizontal space to the right of the sidebar
-                (approximately 80% of the viewport) and adapts as the viewport size changes.</p>
+            <canvas id="main-canvas" aria-label="main canvas"></canvas>
         </div>
     </div>
 
@@ -203,6 +218,241 @@
         window.addEventListener('resize', updateThumbHeights);
         // also update after images load in case they affect layout
         document.querySelectorAll('.thumb img').forEach(img => img.addEventListener('load', updateThumbHeights));
+
+        // Ensure the canvas drawing buffer matches its displayed size
+        function resizeMainCanvas() {
+            const canvas = document.getElementById('main-canvas');
+            if (!canvas) return;
+            const styles = getComputedStyle(canvas);
+            const width = Math.max(0, canvas.clientWidth - parseFloat(styles.paddingLeft || 0) - parseFloat(styles.paddingRight || 0));
+            const height = Math.max(0, canvas.clientHeight - parseFloat(styles.paddingTop || 0) - parseFloat(styles.paddingBottom || 0));
+            // set backing store size for crisp rendering
+            if (canvas.width !== Math.round(width) || canvas.height !== Math.round(height)) {
+                canvas.width = Math.round(width);
+                canvas.height = Math.round(height);
+            }
+        }
+
+        window.addEventListener('load', resizeMainCanvas);
+        window.addEventListener('resize', () => {
+            resizeMainCanvas();
+            updateThumbHeights();
+            // if we have previously loaded an SVG, redraw it to match the new canvas size
+            try {
+                const canvas = document.getElementById('main-canvas');
+                if (window._lastSvgText && canvas) {
+                    // call draw without awaiting to avoid blocking resize event
+                    drawSvgOnCanvas(window._lastSvgText, canvas);
+                }
+            } catch (e) {
+                // defensive: don't let resize errors surface
+                console.error('Error redrawing SVG on resize:', e);
+            }
+        });
+        // also update when thumbnails images load to keep layout consistent
+        document.querySelectorAll('.thumb img').forEach(img => img.addEventListener('load', () => {
+            resizeMainCanvas();
+            updateThumbHeights();
+            try {
+                const canvas = document.getElementById('main-canvas');
+                if (window._lastSvgText && canvas) drawSvgOnCanvas(window._lastSvgText, canvas);
+            } catch (e) {
+                console.error('Error redrawing SVG after image load:', e);
+            }
+        }));
+
+        // Wire thumbnails: add hover text (filename without extension) and click handler
+        function wireThumbnails() {
+            document.querySelectorAll('.thumb').forEach(thumb => {
+                const img = thumb.querySelector('img');
+                if (!img) return;
+                const src = img.getAttribute('src') || '';
+                const name = src.split('/').pop();
+                const base = name.replace(/\.[^/.]+$/, ''); // remove file extension
+                thumb.style.cursor = 'pointer';
+                thumb.title = base; // native tooltip on hover (without extension)
+                img.title = base;
+                thumb.addEventListener('click', async () => {
+                    console.log('You clicked ' + base);
+                    // visual selection: mark this thumbnail as selected and clear others
+                    try {
+                        document.querySelectorAll('.thumb.selected').forEach(t => t.classList.remove('selected'));
+                        thumb.classList.add('selected');
+                    } catch (e) {
+                        console.error('Error setting selected thumbnail class', e);
+                    }
+                    // set canvas border color to match thumbnail border
+                    const thumbStyle = getComputedStyle(thumb);
+                    const borderColor = thumbStyle.borderColor || '#000';
+                    const canvas = document.getElementById('main-canvas');
+                    if (canvas) {
+                        canvas.style.border = '4px solid ' + borderColor;
+                    }
+
+                    // fetch and draw the SVG as vector paths onto the canvas
+                    try {
+                        const res = await fetch(src);
+                        if (!res.ok) throw new Error('Failed to fetch ' + src + ' (' + res.status + ')');
+                        const svgText = await res.text();
+                        // remember the last loaded SVG so we can redraw on resize
+                        window._lastSvgText = svgText;
+                        drawSvgOnCanvas(svgText, canvas);
+                    } catch (err) {
+                        console.error('Error drawing SVG:', err);
+                    }
+                });
+            });
+            // after wiring thumbnails, auto-select the first thumbnail so the page shows content immediately
+            try {
+                // ensure canvas and thumbnails sizes are up-to-date
+                resizeMainCanvas();
+                updateThumbHeights();
+                const first = document.querySelector('.thumb');
+                if (first) {
+                    // simulate a user click to reuse the existing click handler (sets border color, fetches and draws SVG)
+                    first.click();
+                }
+            } catch (e) {
+                console.error('Auto-select first thumbnail failed:', e);
+            }
+        }
+        window.addEventListener('load', wireThumbnails);
+
+        // Parse simple numeric list of points from poly/points attr
+        function parsePoints(str) {
+            return str.trim().split(/\s+|,/).map(Number).filter(n => !Number.isNaN(n));
+        }
+
+        // Draw parsed SVG onto a canvas using canvas API (vector path conversion)
+        async function drawSvgOnCanvas(svgText, canvas) {
+            if (!canvas) return;
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(svgText, 'image/svg+xml');
+            const svg = doc.querySelector('svg');
+            if (!svg) {
+                console.warn('No <svg> element found');
+                return;
+            }
+
+            // Get viewBox or width/height
+            let vb = svg.getAttribute('viewBox');
+            let svgW, svgH;
+            if (vb) {
+                const parts = vb.split(/\s+/).map(Number);
+                if (parts.length === 4) { svgW = parts[2]; svgH = parts[3]; }
+            }
+            if (!svgW || !svgH) {
+                svgW = parseFloat(svg.getAttribute('width')) || svg.getBoundingClientRect().width || canvas.clientWidth;
+                svgH = parseFloat(svg.getAttribute('height')) || svg.getBoundingClientRect().height || canvas.clientHeight;
+            }
+
+            // resize drawing buffer to canvas displayed size
+            resizeMainCanvas();
+            const ctx = canvas.getContext('2d');
+            // clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // compute scaling to fit svg into canvas while preserving aspect
+            const sx = canvas.width / svgW;
+            const sy = canvas.height / svgH;
+            const scale = Math.min(sx, sy);
+            const tx = (canvas.width - svgW * scale) / 2;
+            const ty = (canvas.height - svgH * scale) / 2;
+
+            ctx.save();
+            ctx.translate(tx, ty);
+            ctx.scale(scale, scale);
+
+            // recursive draw for supported elements
+            function drawElement(el) {
+                const tag = el.tagName && el.tagName.toLowerCase();
+                if (!tag) return;
+                const style = el.getAttribute('style') || '';
+                const fill = el.getAttribute('fill') || (style.match(/fill:\s*([^;]+)/) ? RegExp.$1 : 'black');
+                const stroke = el.getAttribute('stroke') || (style.match(/stroke:\s*([^;]+)/) ? RegExp.$1 : null);
+                const strokeWidth = parseFloat(el.getAttribute('stroke-width') || (style.match(/stroke-width:\s*([^;]+)/) ? RegExp.$1 : 1)) || 1;
+
+                if (tag === 'path') {
+                    const d = el.getAttribute('d');
+                    if (!d) return;
+                    try {
+                        const p = new Path2D(d);
+                        if (fill && fill !== 'none') { ctx.fillStyle = fill; ctx.fill(p); }
+                        if (stroke && stroke !== 'none') { ctx.lineWidth = strokeWidth; ctx.strokeStyle = stroke; ctx.stroke(p); }
+                    } catch (e) {
+                        console.warn('Path2D failed for d:', d, e);
+                    }
+                } else if (tag === 'rect') {
+                    const x = parseFloat(el.getAttribute('x') || 0);
+                    const y = parseFloat(el.getAttribute('y') || 0);
+                    const w = parseFloat(el.getAttribute('width') || 0);
+                    const h = parseFloat(el.getAttribute('height') || 0);
+                    const rx = parseFloat(el.getAttribute('rx') || 0);
+                    const ry = parseFloat(el.getAttribute('ry') || rx);
+                    if (rx || ry) {
+                        // rounded rect
+                        ctx.beginPath();
+                        const r = rx || ry;
+                        ctx.moveTo(x + r, y);
+                        ctx.arcTo(x + w, y, x + w, y + h, r);
+                        ctx.arcTo(x + w, y + h, x, y + h, r);
+                        ctx.arcTo(x, y + h, x, y, r);
+                        ctx.arcTo(x, y, x + w, y, r);
+                        ctx.closePath();
+                        if (fill && fill !== 'none') { ctx.fillStyle = fill; ctx.fill(); }
+                        if (stroke && stroke !== 'none') { ctx.lineWidth = strokeWidth; ctx.strokeStyle = stroke; ctx.stroke(); }
+                    } else {
+                        if (fill && fill !== 'none') { ctx.fillStyle = fill; ctx.fillRect(x, y, w, h); }
+                        if (stroke && stroke !== 'none') { ctx.lineWidth = strokeWidth; ctx.strokeStyle = stroke; ctx.strokeRect(x, y, w, h); }
+                    }
+                } else if (tag === 'circle') {
+                    const cx = parseFloat(el.getAttribute('cx') || 0);
+                    const cy = parseFloat(el.getAttribute('cy') || 0);
+                    const r = parseFloat(el.getAttribute('r') || 0);
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+                    if (fill && fill !== 'none') { ctx.fillStyle = fill; ctx.fill(); }
+                    if (stroke && stroke !== 'none') { ctx.lineWidth = strokeWidth; ctx.strokeStyle = stroke; ctx.stroke(); }
+                } else if (tag === 'ellipse') {
+                    const cx = parseFloat(el.getAttribute('cx') || 0);
+                    const cy = parseFloat(el.getAttribute('cy') || 0);
+                    const rx = parseFloat(el.getAttribute('rx') || 0);
+                    const ry = parseFloat(el.getAttribute('ry') || 0);
+                    ctx.beginPath();
+                    ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+                    if (fill && fill !== 'none') { ctx.fillStyle = fill; ctx.fill(); }
+                    if (stroke && stroke !== 'none') { ctx.lineWidth = strokeWidth; ctx.strokeStyle = stroke; ctx.stroke(); }
+                } else if (tag === 'line') {
+                    const x1 = parseFloat(el.getAttribute('x1') || 0);
+                    const y1 = parseFloat(el.getAttribute('y1') || 0);
+                    const x2 = parseFloat(el.getAttribute('x2') || 0);
+                    const y2 = parseFloat(el.getAttribute('y2') || 0);
+                    ctx.beginPath();
+                    ctx.moveTo(x1, y1);
+                    ctx.lineTo(x2, y2);
+                    if (stroke && stroke !== 'none') { ctx.lineWidth = strokeWidth; ctx.strokeStyle = stroke; ctx.stroke(); }
+                } else if (tag === 'polyline' || tag === 'polygon') {
+                    const pts = el.getAttribute('points') || '';
+                    const nums = parsePoints(pts);
+                    if (nums.length < 2) return;
+                    ctx.beginPath();
+                    ctx.moveTo(nums[0], nums[1]);
+                    for (let i = 2; i < nums.length; i += 2) ctx.lineTo(nums[i], nums[i+1]);
+                    if (tag === 'polygon') ctx.closePath();
+                    if (fill && fill !== 'none') { ctx.fillStyle = fill; ctx.fill(); }
+                    if (stroke && stroke !== 'none') { ctx.lineWidth = strokeWidth; ctx.strokeStyle = stroke; ctx.stroke(); }
+                } else {
+                    // unsupported element
+                    // recurse into children to catch nested shapes
+                    Array.from(el.children || []).forEach(child => drawElement(child));
+                }
+            }
+
+            // draw direct children of the svg
+            Array.from(svg.children || []).forEach(child => drawElement(child));
+
+            ctx.restore();
+        }
     </script>
 </body>
 
