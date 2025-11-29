@@ -3,9 +3,9 @@
 
     // Ensure the canvas drawing buffer matches its displayed size
     function resizeMainCanvas() {
-        const canvas = document.getElementById('main-canvas');
+        const canvas = D.getElementById('main-canvas');
         if (!canvas) return;
-        const styles = getComputedStyle(canvas);
+        const styles = W.getComputedStyle(canvas);
         const width = Math.max(0, canvas.clientWidth - parseFloat(styles.paddingLeft || 0) - parseFloat(styles.paddingRight || 0));
         const height = Math.max(0, canvas.clientHeight - parseFloat(styles.paddingTop || 0) - parseFloat(styles.paddingBottom || 0));
         // set backing store size for crisp rendering
@@ -16,28 +16,45 @@
     }
 
     // Redraw on load/resize when appropriate
-    window.addEventListener('load', resizeMainCanvas);
-    window.addEventListener('resize', () => {
+    W.addEventListener('load', resizeMainCanvas);
+
+    // internal last-SVG storage (avoid global window._lastSvgText)
+    let _lastSvgText = null;
+    function setLastSvg(text) { _lastSvgText = text; }
+    function getLastSvg() { return _lastSvgText; }
+
+    // small debounce helper to avoid excessive redraws during resize
+    function debounce(fn, wait) {
+        let t = null;
+        return function (...args) {
+            if (t) clearTimeout(t);
+            t = setTimeout(() => fn.apply(this, args), wait);
+        };
+    }
+
+    const handleResize = () => {
         resizeMainCanvas();
         // if we have previously loaded an SVG, redraw it to match the new canvas size
         try {
-            const canvas = document.getElementById('main-canvas');
-            if (window._lastSvgText && canvas) {
+            const canvas = D.getElementById('main-canvas');
+            if (_lastSvgText && canvas) {
                 // call draw without awaiting to avoid blocking resize event
-                drawSvgOnCanvas(window._lastSvgText, canvas);
+                drawSvgOnCanvas(_lastSvgText, canvas);
             }
         } catch (e) {
             // defensive: don't let resize errors surface
             console.error('Error redrawing SVG on resize:', e);
         }
-    });
+    };
+
+    W.addEventListener('resize', debounce(handleResize, 150));
 
     // also update when thumbnails images load to keep layout consistent
-    document.querySelectorAll('.thumb img').forEach(img => img.addEventListener('load', () => {
+    D.querySelectorAll('.thumb img').forEach(img => img.addEventListener('load', () => {
         resizeMainCanvas();
         try {
-            const canvas = document.getElementById('main-canvas');
-            if (window._lastSvgText && canvas) drawSvgOnCanvas(window._lastSvgText, canvas);
+            const canvas = D.getElementById('main-canvas');
+            if (_lastSvgText && canvas) drawSvgOnCanvas(_lastSvgText, canvas);
         } catch (e) {
             console.error('Error redrawing SVG after image load:', e);
         }
@@ -179,8 +196,12 @@
         ctx.restore();
     }
 
-    // Export the minimal API so other modules can call these functions
-    window.resizeMainCanvas = resizeMainCanvas;
-    window.drawSvgOnCanvas = drawSvgOnCanvas;
+    // Export the minimal API under W.MAFFIE so other modules can call these functions
+    W.MAFFIE = {
+        resizeMainCanvas: resizeMainCanvas,
+        drawSvgOnCanvas: drawSvgOnCanvas,
+        setLastSvg: setLastSvg,
+        getLastSvg: getLastSvg
+    };
 
 })();

@@ -52,8 +52,18 @@ function wireThumbnails() {
                 if (!res.ok) throw new Error('Failed to fetch ' + src + ' (' + res.status + ')');
                 const svgText = await res.text();
                 // remember the last loaded SVG so we can redraw on resize
-                window._lastSvgText = svgText;
-                drawSvgOnCanvas(svgText, canvas);
+                if (window.MAFFIE && typeof window.MAFFIE.setLastSvg === 'function') {
+                    window.MAFFIE.setLastSvg(svgText);
+                } else {
+                    // fallback to the legacy global slot if MAFFIE isn't ready
+                    window._lastSvgText = svgText;
+                }
+                if (window.MAFFIE && typeof window.MAFFIE.drawSvgOnCanvas === 'function') {
+                    window.MAFFIE.drawSvgOnCanvas(svgText, canvas);
+                } else {
+                    // fallback if MAFFIE isn't ready for some reason
+                    try { drawSvgOnCanvas(svgText, canvas); } catch (e) { console.error('No draw function available', e); }
+                }
             } catch (err) {
                 console.error('Error drawing SVG:', err);
             }
@@ -62,7 +72,9 @@ function wireThumbnails() {
     // after wiring thumbnails, auto-select the first thumbnail so the page shows content immediately
     try {
         // ensure canvas and thumbnails sizes are up-to-date
-        resizeMainCanvas();
+        if (window.MAFFIE && typeof window.MAFFIE.resizeMainCanvas === 'function') {
+            window.MAFFIE.resizeMainCanvas();
+        }
         updateThumbHeights();
         const first = document.querySelector('.thumb');
         if (first) {
