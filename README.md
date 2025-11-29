@@ -29,7 +29,7 @@ Start-Process 'http://localhost:8080/'
 
 4. Files and APIs of interest:
 
-- `index.html` — main UI shell; loads `css/style.css`, `js/globals.js`, `js/canvas.js`, `js/thumbnails.js`.
+- `index.html` — main UI shell; loads `css/style.css`, `js/globals.js`, `js/utils.js`, `js/canvas.js`, `js/thumbnails.js` (note: `js/globals.js` and `js/utils.js` must load before other scripts).
 - `css/style.css` — layout and styles for thumbnails and canvas.
 - `js/globals.js` — defines `var W = window; var D = document;` and must be loaded before other scripts.
 - `js/canvas.js` — encapsulated in an IIFE and exposes `window.MAFFIE` with methods:
@@ -37,6 +37,10 @@ Start-Process 'http://localhost:8080/'
 	- `MAFFIE.drawSvgOnCanvas(svgText, canvas)` — parses and draws SVG primitives onto the canvas
 	- `MAFFIE.setLastSvg(text)` / `MAFFIE.getLastSvg()` — internal last-loaded SVG accessors
 - `js/thumbnails.js` — wires thumbnail clicks and calls `MAFFIE` to draw the selected SVG.
+
+- `js/utils.js` — small shared helpers exported on `W.UTILS` (loaded before other scripts):
+	- `W.UTILS.debounce(fn, wait)` — debounce helper used for resize/image-load throttling.
+	- `W.UTILS.parsePoints(str)` — parses SVG point lists for polyline/polygon rendering.
 
 ## Automated smoke test (optional)
 
