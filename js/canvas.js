@@ -18,28 +18,22 @@
     // Redraw on load/resize when appropriate
     W.addEventListener('load', resizeMainCanvas);
 
-    // internal last-SVG storage (avoid global window._lastSvgText)
-    let _lastSvgText = null;
-    function setLastSvg(text) { _lastSvgText = text; }
-    function getLastSvg() { return _lastSvgText; }
+    // NOTE: last-SVG storage is kept on the exported MAFFIE object so
+    // other modules can access it through the defined API. References
+    // in runtime handlers read via W.MAFFIE.getLastSvg() to avoid
+    // relying on a closure-scoped variable.
 
-    // small debounce helper to avoid excessive redraws during resize
-    function debounce(fn, wait) {
-        let t = null;
-        return function (...args) {
-            if (t) clearTimeout(t);
-            t = setTimeout(() => fn.apply(this, args), wait);
-        };
-    }
+    // helpers moved to js/utils.js (W.UTILS.debounce / W.UTILS.parsePoints)
 
     const handleResize = () => {
         resizeMainCanvas();
         // if we have previously loaded an SVG, redraw it to match the new canvas size
         try {
             const canvas = D.getElementById('main-canvas');
-            if (_lastSvgText && canvas) {
+            const last = (W.MAFFIE && typeof W.MAFFIE.getLastSvg === 'function') ? W.MAFFIE.getLastSvg() : null;
+            if (last && canvas) {
                 // call draw without awaiting to avoid blocking resize event
-                drawSvgOnCanvas(_lastSvgText, canvas);
+                drawSvgOnCanvas(last, canvas);
             }
         } catch (e) {
             // defensive: don't let resize errors surface
@@ -47,23 +41,21 @@
         }
     };
 
-    W.addEventListener('resize', debounce(handleResize, 150));
+    W.addEventListener('resize', (W.UTILS && typeof W.UTILS.debounce === 'function') ? W.UTILS.debounce(handleResize, 150) : handleResize);
 
     // also update when thumbnails images load to keep layout consistent
     D.querySelectorAll('.thumb img').forEach(img => img.addEventListener('load', () => {
         resizeMainCanvas();
         try {
             const canvas = D.getElementById('main-canvas');
-            if (_lastSvgText && canvas) drawSvgOnCanvas(_lastSvgText, canvas);
+            const last = (W.MAFFIE && typeof W.MAFFIE.getLastSvg === 'function') ? W.MAFFIE.getLastSvg() : null;
+            if (last && canvas) drawSvgOnCanvas(last, canvas);
         } catch (e) {
             console.error('Error redrawing SVG after image load:', e);
         }
     }));
 
-    // Parse simple numeric list of points from poly/points attr
-    function parsePoints(str) {
-        return str.trim().split(/\s+|,/).map(Number).filter(n => !Number.isNaN(n));
-    }
+    // parsePoints moved to W.UTILS.parsePoints
 
     // Draw parsed SVG onto a canvas using canvas API (vector path conversion)
     async function drawSvgOnCanvas(svgText, canvas) {
@@ -175,7 +167,7 @@
                 if (stroke && stroke !== 'none') { ctx.lineWidth = strokeWidth; ctx.strokeStyle = stroke; ctx.stroke(); }
             } else if (tag === 'polyline' || tag === 'polygon') {
                 const pts = el.getAttribute('points') || '';
-                const nums = parsePoints(pts);
+                const nums = (W.UTILS && typeof W.UTILS.parsePoints === 'function') ? W.UTILS.parsePoints(pts) : pts.trim().split(/\s+|,/).map(Number).filter(n => !Number.isNaN(n));
                 if (nums.length < 2) return;
                 ctx.beginPath();
                 ctx.moveTo(nums[0], nums[1]);
@@ -198,10 +190,12 @@
 
     // Export the minimal API under W.MAFFIE so other modules can call these functions
     W.MAFFIE = {
+        // internal storage for the last SVG text (owned by the MAFFIE API)
+        _lastSvgText: null,
         resizeMainCanvas: resizeMainCanvas,
         drawSvgOnCanvas: drawSvgOnCanvas,
-        setLastSvg: setLastSvg,
-        getLastSvg: getLastSvg
+        setLastSvg(text) { this._lastSvgText = text; },
+        getLastSvg() { return this._lastSvgText; }
     };
 
 })();

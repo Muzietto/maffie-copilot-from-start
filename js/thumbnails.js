@@ -16,13 +16,7 @@
         });
     }
 
-    function debounce(fn, wait) {
-        let t = null;
-        return function () {
-            if (t) clearTimeout(t);
-            t = setTimeout(fn, wait);
-        };
-    }
+    // debounce moved to js/utils.js as W.UTILS.debounce
 
     async function onThumbClick(thumb) {
         const img = thumb.querySelector('img');
@@ -83,7 +77,7 @@
         updateThumbHeights();
         wireThumbnails();
     });
-    W.addEventListener('resize', debounce(updateThumbHeights, 120));
+    W.addEventListener('resize', (W.UTILS && typeof W.UTILS.debounce === 'function') ? W.UTILS.debounce(updateThumbHeights, 120) : updateThumbHeights);
     D.querySelectorAll('.thumb img').forEach(img => img.addEventListener('load', updateThumbHeights));
 
 })();
