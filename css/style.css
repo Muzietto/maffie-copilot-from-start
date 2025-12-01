@@ -201,6 +201,16 @@ body {
     border-radius: 6px;
     /* 6px radius */
     background: white;
+    /* default cursor left to user agent when no additional image is present */
+}
+
+/* apply grab/grabbing only when canvas has the 'can-grab' class (enabled by JS) */
+#main-canvas.can-grab {
+    cursor: grab;
+}
+
+#main-canvas.can-grab.grabbing {
+    cursor: grabbing;
 }
 
 /* Small responsive tweak: stack columns on narrow screens */

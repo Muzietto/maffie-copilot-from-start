@@ -41,8 +41,9 @@
         const scale = coverScale * userScale;
         const dw = imgW * scale;
         const dh = imgH * scale;
-        const dx = (canvas.width - dw) / 2;
-        const dy = (canvas.height - dh) / 2;
+        const offset = (W.MAFFIE && W.MAFFIE._bgOffset) ? W.MAFFIE._bgOffset : { x: 0, y: 0 };
+        const dx = (canvas.width - dw) / 2 + (offset.x || 0);
+        const dy = (canvas.height - dh) / 2 + (offset.y || 0);
         try {
             ctx.save();
             ctx.drawImage(bg, dx, dy, dw, dh);
@@ -303,10 +304,14 @@
         _lastSvgText: null,
         // optional background image (HTMLImageElement or ImageBitmap)
         _bgImage: null,
+        // optional pan offset for background drawing (pixels)
+        _bgOffset: null,
         resizeMainCanvas: resizeMainCanvas,
         drawSvgOnCanvas: drawSvgOnCanvas,
         setLastSvg(text) { this._lastSvgText = text; },
-        getLastSvg() { return this._lastSvgText; }
+        getLastSvg() { return this._lastSvgText; },
+        // request a redraw of the canvas (background and/or last SVG)
+        requestRedraw() { try { redrawCanvas(); } catch (e) { /* ignore */ } }
     };
 
     // Redraw helper used by multiple controls: draws background (if any)
@@ -366,7 +371,13 @@
             const img = new Image();
             img.onload = () => {
                 // store image and redraw
-                if (W.MAFFIE) W.MAFFIE._bgImage = img;
+                if (W.MAFFIE) {
+                    W.MAFFIE._bgImage = img;
+                    // initialize pan offset (pixels) so image is centered
+                    W.MAFFIE._bgOffset = { x: 0, y: 0 };
+                    // notify other modules that background changed
+                    try { window.dispatchEvent(new Event('maffie:bgchange')); } catch (e) { /* ignore */ }
+                }
                 if (btn) btn.disabled = false;
                 if (slider) slider.disabled = false;
                 redrawCanvas();
@@ -384,7 +395,11 @@
             btn.addEventListener('click', () => {
                 // clear input, remove background and redraw
                 try { input.value = ''; } catch (e) { /* ignore */ }
-                if (W.MAFFIE) W.MAFFIE._bgImage = null;
+                if (W.MAFFIE) {
+                    W.MAFFIE._bgImage = null;
+                    W.MAFFIE._bgOffset = null;
+                    try { window.dispatchEvent(new Event('maffie:bgchange')); } catch (e) { /* ignore */ }
+                }
                 btn.disabled = true;
                 if (slider) slider.disabled = true;
                 redrawCanvas();
