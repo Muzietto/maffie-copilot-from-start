@@ -93,6 +93,48 @@
         const tx = (canvas.width - svgW * scale) / 2;
         const ty = (canvas.height - svgH * scale) / 2;
 
+        // Try a raster approach first: render the SVG into an offscreen Image
+        // and draw it onto the canvas. This preserves fills, gradients,
+        // filters and other paint servers that are hard to replicate via
+        // Path2D. If this fails (older browsers / security restrictions),
+        // fall back to the vector element-by-element drawing below.
+        try {
+            const svgBlob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(svgBlob);
+            await new Promise((resolve, reject) => {
+                const img = new Image();
+                // blob URLs are same-origin so no crossOrigin required
+                img.onload = () => {
+                    try {
+                        // compute destination rectangle in pixel coordinates
+                        const destW = svgW * scale;
+                        const destH = svgH * scale;
+                        const destX = tx;
+                        const destY = ty;
+                        // draw the rasterized SVG onto the canvas
+                        ctx.save();
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, destX, destY, destW, destH);
+                        ctx.restore();
+                        resolve();
+                    } catch (e) {
+                        reject(e);
+                    } finally {
+                        URL.revokeObjectURL(url);
+                    }
+                };
+                img.onerror = (ev) => {
+                    URL.revokeObjectURL(url);
+                    reject(new Error('Failed to load rasterized SVG image'));
+                };
+                img.src = url;
+            });
+            // successfully drawn via drawImage; we're done
+            return;
+        } catch (e) {
+            console.warn('Raster drawImage approach failed, falling back to vector draw:', e);
+        }
+
         ctx.save();
         ctx.translate(tx, ty);
         ctx.scale(scale, scale);
@@ -101,10 +143,43 @@
         function drawElement(el) {
             const tag = el.tagName && el.tagName.toLowerCase();
             if (!tag) return;
-            const style = el.getAttribute('style') || '';
-            const fill = el.getAttribute('fill') || (style.match(/fill:\s*([^;]+)/) ? RegExp.$1 : 'black');
-            const stroke = el.getAttribute('stroke') || (style.match(/stroke:\s*([^;]+)/) ? RegExp.$1 : null);
-            const strokeWidth = parseFloat(el.getAttribute('stroke-width') || (style.match(/stroke-width:\s*([^;]+)/) ? RegExp.$1 : 1)) || 1;
+            // Resolve presentation attributes with inheritance: check the element
+            // and walk up parent nodes to find the first occurrence of the
+            // property (fill, stroke, stroke-width, color, etc.). This covers
+            // cases where SVGs rely on inherited values or `currentColor`.
+            function getInheritedProp(node, name) {
+                let cur = node;
+                const re = new RegExp(name.replace(/[-\\[]/g, '\\$&') + '\\s*:\\s*([^;]+)');
+                while (cur && cur.nodeType === 1) {
+                    const attr = cur.getAttribute(name);
+                    if (attr && attr.trim() !== '') return attr.trim();
+                    const style = cur.getAttribute('style');
+                    if (style) {
+                        const m = style.match(re);
+                        if (m && m[1]) return m[1].trim();
+                    }
+                    cur = cur.parentElement;
+                }
+                return null;
+            }
+
+            let fill = getInheritedProp(el, 'fill');
+            // Support `currentColor` which inherits the `color` property
+            if (fill === 'currentColor' || fill === 'currentcolor') {
+                const col = getInheritedProp(el, 'color');
+                if (col) fill = col;
+            }
+            // Fallback to 'black' for compatibility with previous behavior
+            if (!fill) fill = 'black';
+
+            let stroke = getInheritedProp(el, 'stroke');
+            if (stroke === 'currentColor' || stroke === 'currentcolor') {
+                const col = getInheritedProp(el, 'color');
+                if (col) stroke = col;
+            }
+
+            let strokeWidth = getInheritedProp(el, 'stroke-width');
+            strokeWidth = parseFloat(strokeWidth || '1') || 1;
 
             if (tag === 'path') {
                 const d = el.getAttribute('d');
