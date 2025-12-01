@@ -88,6 +88,21 @@ body {
   margin-bottom: 0.5rem;
 }
 
+/* Additional image selector layout in the left column */
+.additional-image {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-start; /* left-align children */
+}
+
+.additional-image input,
+.additional-image button {
+  /* keep natural sizing but stack vertically with same left edge */
+  display: block;
+}
+
 .thumb {
   width: 80%;
   /* 80% of the left column */

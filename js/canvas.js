@@ -18,6 +18,32 @@
     // Redraw on load/resize when appropriate
     W.addEventListener('load', resizeMainCanvas);
 
+    // Draw an optional background image (scaled to fill) onto the provided canvas.
+    function drawBackgroundOnCanvas(canvas) {
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        const bg = (W.MAFFIE && W.MAFFIE._bgImage) ? W.MAFFIE._bgImage : null;
+        if (!bg) return;
+        // image may be an HTMLImageElement or ImageBitmap
+        const imgW = bg.naturalWidth || bg.width || 0;
+        const imgH = bg.naturalHeight || bg.height || 0;
+        if (!imgW || !imgH) return;
+        // scale to cover (fill) the canvas
+        const scale = Math.max(canvas.width / imgW, canvas.height / imgH);
+        const dw = imgW * scale;
+        const dh = imgH * scale;
+        const dx = (canvas.width - dw) / 2;
+        const dy = (canvas.height - dh) / 2;
+        try {
+            ctx.save();
+            ctx.drawImage(bg, dx, dy, dw, dh);
+            ctx.restore();
+        } catch (e) {
+            console.warn('Failed to draw background image:', e);
+        }
+    }
+
     // NOTE: last-SVG storage is kept on the exported MAFFIE object so
     // other modules can access it through the defined API. References
     // in runtime handlers read via W.MAFFIE.getLastSvg() to avoid
@@ -83,8 +109,9 @@
         // resize drawing buffer to canvas displayed size
         resizeMainCanvas();
         const ctx = canvas.getContext('2d');
-        // clear canvas
+        // clear canvas and draw optional background image
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawBackgroundOnCanvas(canvas);
 
         // compute scaling to fit svg into canvas while preserving aspect
         const sx = canvas.width / svgW;
@@ -111,9 +138,8 @@
                         const destH = svgH * scale;
                         const destX = tx;
                         const destY = ty;
-                        // draw the rasterized SVG onto the canvas
+                        // draw the rasterized SVG onto the canvas (on top of background)
                         ctx.save();
-                        ctx.clearRect(0, 0, canvas.width, canvas.height);
                         ctx.drawImage(img, destX, destY, destW, destH);
                         ctx.restore();
                         resolve();
@@ -267,10 +293,79 @@
     W.MAFFIE = {
         // internal storage for the last SVG text (owned by the MAFFIE API)
         _lastSvgText: null,
+        // optional background image (HTMLImageElement or ImageBitmap)
+        _bgImage: null,
         resizeMainCanvas: resizeMainCanvas,
         drawSvgOnCanvas: drawSvgOnCanvas,
         setLastSvg(text) { this._lastSvgText = text; },
         getLastSvg() { return this._lastSvgText; }
     };
+
+    // Wire the 'Immagine Addizionale' file input to load an image and set it
+    // as the canvas background (scaled to fill). This runs after MAFFIE is
+    // exported so we can store the loaded image on W.MAFFIE._bgImage.
+    (function wireAdditionalImageInput() {
+        const input = D.getElementById('additional-image-input');
+        const btn = D.getElementById('clear-additional-image');
+        if (!input) return;
+        // initialize button disabled state
+        if (btn) {
+            try {
+                btn.disabled = !(W.MAFFIE && W.MAFFIE._bgImage);
+            } catch (e) {
+                btn.disabled = true;
+            }
+        }
+        // helper to redraw after background change
+        function redrawAfterBgChange() {
+            const canvas = D.getElementById('main-canvas');
+            const last = (W.MAFFIE && typeof W.MAFFIE.getLastSvg === 'function') ? W.MAFFIE.getLastSvg() : null;
+            if (canvas) {
+                if (last) drawSvgOnCanvas(last, canvas);
+                else {
+                    resizeMainCanvas();
+                    const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    drawBackgroundOnCanvas(canvas);
+                }
+            }
+        }
+
+        input.addEventListener('change', (ev) => {
+            const file = (ev.target && ev.target.files && ev.target.files[0]) || null;
+            if (!file) {
+                if (W.MAFFIE) W.MAFFIE._bgImage = null;
+                if (btn) btn.disabled = true;
+                redrawAfterBgChange();
+                return;
+            }
+
+            const url = URL.createObjectURL(file);
+            const img = new Image();
+            img.onload = () => {
+                // store image and redraw
+                if (W.MAFFIE) W.MAFFIE._bgImage = img;
+                if (btn) btn.disabled = false;
+                redrawAfterBgChange();
+                // release blob URL; keep image in memory
+                URL.revokeObjectURL(url);
+            };
+            img.onerror = (e) => {
+                console.error('Failed to load additional image:', e);
+                URL.revokeObjectURL(url);
+            };
+            img.src = url;
+        });
+
+        if (btn) {
+            btn.addEventListener('click', () => {
+                // clear input, remove background and redraw
+                try { input.value = ''; } catch (e) { /* ignore */ }
+                if (W.MAFFIE) W.MAFFIE._bgImage = null;
+                btn.disabled = true;
+                redrawAfterBgChange();
+            });
+        }
+    })();
 
 })();
