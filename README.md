@@ -70,7 +70,37 @@ The script will exit with non-zero status if the center-pixel assertion fails an
 - If thumbnails don't load, make sure you served the repo over HTTP (fetch() needs an origin). Running `python -m http.server` from the repo root is a quick way to serve static files.
 - If Playwright fails to launch a browser, run `python -m playwright install` to ensure browser binaries are installed.
 
+## SFTP / Upload utilities
+
+The `tools/` folder contains one upload helper:
+
+- `tools/upload_sftp_dir.py` — recursive SFTP uploader using `paramiko` (third-party package).
+
+Quick SFTP usage (password auth):
+
+```powershell
+python -m pip install paramiko
+python tools\upload_sftp_dir.py \
+	--host example.com --port 22 --username alice \
+	--local-dir path\to\build --remote-dir /var/www/site
+```
+
+Quick SFTP usage (key auth):
+
+```powershell
+python -m pip install paramiko
+python tools\upload_sftp_dir.py \
+	--host example.com --username alice --key-file C:\Users\alice\.ssh\id_rsa \
+	--local-dir path\to\build --remote-dir /var/www/site
+```
+
+Notes:
+
+- The SFTP script supports both password and key-based auth. If using password auth and you omit `--password`, the script will prompt you.
+- If `paramiko` is not installed, install it via `python -m pip install paramiko` before running.
+- The scripts are designed to be run locally on your machine (they won't run in this sandbox unless you install dependencies locally).
+
 ## Notes
 
 - The code intentionally exposes a tiny global API `MAFFIE` to decouple the thumbnail code from the rendering internals.
-- If you want automated CI coverage of the smoke test, I can add a small test runner and CI job next.
+
