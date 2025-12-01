@@ -29,8 +29,8 @@ body {
     /* 10% of the screen height */
     display: flex;
     align-items: center;
-    justify-content: flex-end;
-    /* text to the right */
+    justify-content: flex-start;
+    /* text to the left */
     margin-top: 6px;
     /* top margin for the red border */
     margin-left: 6px;
@@ -41,7 +41,9 @@ body {
     /* align visually with content's right padding */
     padding-left: 6px;
     /* align visually with content's left padding */
-    font-size: 1.25rem;
+    /* make the text scale to exactly fill the title box height (10vh) minus the 8px top+bottom borders */
+    font-size: calc(10vh - 16px);
+    line-height: 1;
     box-sizing: border-box;
     border: 8px solid red;
     /* same proportions as the pink/blue borders */
