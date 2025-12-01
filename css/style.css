@@ -214,4 +214,24 @@ body {
         width: 100%;
         height: auto;
     }
+
+    /* Smartphone (portrait) tweaks: reduce title size and make thumbnails two per row */
+    #title {
+        /* smaller title to fit small screens: 6vh minus borders (top+bottom = 16px) */
+        font-size: calc(6vh - 16px);
+        line-height: 1;
+    }
+
+    .thumbnails {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: space-between;
+    }
+
+    .thumbnails .thumb {
+        width: calc(50% - 4px);
+        box-sizing: border-box;
+    }
 }
