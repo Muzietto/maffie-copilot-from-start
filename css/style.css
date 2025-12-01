@@ -79,6 +79,24 @@ body {
     overflow: auto;
 }
 
+/* make left column a column-flex so we can pin download controls to the bottom */
+#left-column {
+    display: flex;
+    flex-direction: column;
+}
+
+.download-area {
+    /* keep pinned to bottom but left-align contents to match other controls */
+    margin-top: auto;
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    /* left-align the button */
+    padding-top: 24px;
+    /* 24px gap above the button */
+}
+
+
 /* Thumbnails inside left column */
 .thumbnails {
     display: flex;
@@ -102,6 +120,12 @@ body {
 .additional-image button {
     /* keep natural sizing but stack vertically with same left edge */
     display: block;
+}
+
+/* Slider for additional image scaling */
+.additional-image #additional-image-scaler {
+    width: 100%;
+    margin-top: 0.25rem;
 }
 
 .thumb {

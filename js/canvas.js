@@ -29,8 +29,16 @@
         const imgW = bg.naturalWidth || bg.width || 0;
         const imgH = bg.naturalHeight || bg.height || 0;
         if (!imgW || !imgH) return;
-        // scale to cover (fill) the canvas
-        const scale = Math.max(canvas.width / imgW, canvas.height / imgH);
+        // scale to cover (fill) the canvas, then apply user scaler (percent)
+        const coverScale = Math.max(canvas.width / imgW, canvas.height / imgH);
+        let userScale = 1;
+        try {
+            const slider = D.getElementById('additional-image-scaler');
+            if (slider && slider.value) userScale = Number(slider.value) / 100;
+        } catch (e) {
+            userScale = 1;
+        }
+        const scale = coverScale * userScale;
         const dw = imgW * scale;
         const dh = imgH * scale;
         const dx = (canvas.width - dw) / 2;
@@ -301,6 +309,22 @@
         getLastSvg() { return this._lastSvgText; }
     };
 
+    // Redraw helper used by multiple controls: draws background (if any)
+    // and/or the last SVG onto the main canvas.
+    function redrawCanvas() {
+        const canvas = D.getElementById('main-canvas');
+        const last = (W.MAFFIE && typeof W.MAFFIE.getLastSvg === 'function') ? W.MAFFIE.getLastSvg() : null;
+        if (!canvas) return;
+        if (last) {
+            drawSvgOnCanvas(last, canvas);
+        } else {
+            resizeMainCanvas();
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBackgroundOnCanvas(canvas);
+        }
+    }
+
     // Wire the 'Immagine Addizionale' file input to load an image and set it
     // as the canvas background (scaled to fill). This runs after MAFFIE is
     // exported so we can store the loaded image on W.MAFFIE._bgImage.
@@ -309,6 +333,8 @@
         const btn = D.getElementById('clear-additional-image');
         if (!input) return;
         // initialize button disabled state
+        // initialize button and slider disabled state
+        const slider = D.getElementById('additional-image-scaler');
         if (btn) {
             try {
                 btn.disabled = !(W.MAFFIE && W.MAFFIE._bgImage);
@@ -316,27 +342,23 @@
                 btn.disabled = true;
             }
         }
-        // helper to redraw after background change
-        function redrawAfterBgChange() {
-            const canvas = D.getElementById('main-canvas');
-            const last = (W.MAFFIE && typeof W.MAFFIE.getLastSvg === 'function') ? W.MAFFIE.getLastSvg() : null;
-            if (canvas) {
-                if (last) drawSvgOnCanvas(last, canvas);
-                else {
-                    resizeMainCanvas();
-                    const ctx = canvas.getContext('2d');
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    drawBackgroundOnCanvas(canvas);
-                }
+        if (slider) {
+            try {
+                slider.disabled = !(W.MAFFIE && W.MAFFIE._bgImage);
+            } catch (e) {
+                slider.disabled = true;
             }
         }
+        // use shared redraw helper
+        // (redrawCanvas is defined below the MAFFIE export)
 
         input.addEventListener('change', (ev) => {
             const file = (ev.target && ev.target.files && ev.target.files[0]) || null;
             if (!file) {
                 if (W.MAFFIE) W.MAFFIE._bgImage = null;
                 if (btn) btn.disabled = true;
-                redrawAfterBgChange();
+                if (slider) slider.disabled = true;
+                redrawCanvas();
                 return;
             }
 
@@ -346,7 +368,8 @@
                 // store image and redraw
                 if (W.MAFFIE) W.MAFFIE._bgImage = img;
                 if (btn) btn.disabled = false;
-                redrawAfterBgChange();
+                if (slider) slider.disabled = false;
+                redrawCanvas();
                 // release blob URL; keep image in memory
                 URL.revokeObjectURL(url);
             };
@@ -363,9 +386,66 @@
                 try { input.value = ''; } catch (e) { /* ignore */ }
                 if (W.MAFFIE) W.MAFFIE._bgImage = null;
                 btn.disabled = true;
-                redrawAfterBgChange();
+                if (slider) slider.disabled = true;
+                redrawCanvas();
             });
         }
+    })();
+
+    // Wire the slider to redraw the canvas in real time as the user moves it.
+    (function wireScaler() {
+        const slider = D.getElementById('additional-image-scaler');
+        if (!slider) return;
+        slider.addEventListener('input', () => {
+            // live update background scale
+            redrawCanvas();
+        });
+    })();
+
+    // Wire the download button to export the main canvas as a PNG and trigger
+    // a download. The browser controls the destination; we provide a filename
+    // so most browsers will save to the user's Downloads folder (or ask).
+    (function wireDownloadButton() {
+        const btn = D.getElementById('download-canvas');
+        if (!btn) return;
+        btn.addEventListener('click', () => {
+            const canvas = D.getElementById('main-canvas');
+            if (!canvas) return;
+            // ensure canvas buffer matches display size
+            resizeMainCanvas();
+            // prefer toBlob for binary download
+            if (canvas.toBlob) {
+                canvas.toBlob((blob) => {
+                    if (!blob) {
+                        console.error('Failed to create image blob');
+                        return;
+                    }
+                    const url = URL.createObjectURL(blob);
+                    const a = D.createElement('a');
+                    a.href = url;
+                    const name = `maffie_canvas_${Date.now()}.png`;
+                    a.download = name;
+                    // append to DOM to make click work in some browsers
+                    D.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    setTimeout(() => URL.revokeObjectURL(url), 1500);
+                }, 'image/png');
+            } else {
+                // fallback: data URL
+                try {
+                    const data = canvas.toDataURL('image/png');
+                    const a = D.createElement('a');
+                    a.href = data;
+                    a.download = `maffie_canvas_${Date.now()}.png`;
+                    D.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                } catch (e) {
+                    console.error('Failed to export canvas image:', e);
+                }
+            }
+        });
     })();
 
 })();
