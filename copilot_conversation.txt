@@ -2,7 +2,7 @@
 left-column and main-area. main-area is on the right side and it occupies two
 thirds of the screen. left-column has a pink border size 2px. main-area has a
 blue border size 2px. all the CSS is inside the html file. both divs are as high
-as the whole screen.
+as the whole screen. (4104e0)
 
 Muzietto: from now on, when I give you a measure through a pure number, I mean
 it as pixels
@@ -30,10 +30,7 @@ Muzietto: left-column must occupy 20% of the screen width. adjust main-area
 accordingly
 
 Muzietto: adjust the texts inside left-column and main-area to reflect the
-changes in width you just made
-
-Muzietto: from now on I don't care about your todo list. just managet it
-yourself
+changes in width you just made (4bfc5e)
 
 Muzietto: put four thumbnails in the left column above the text. each thumbnail
 has the proportions of the main-area and displays one of the four svg files
@@ -42,7 +39,7 @@ inside the svgs directory. each thumbnail has width 80% of the left column
 Muzietto: put a colored border with width 4 around each thumbnail. choose the
 colors yourself
 
-Muzietto: give padding 4 to the thumbnails
+Muzietto: give padding 4 to the thumbnails (65b7bd)
 
 Muzietto: remove the text from main-area. place a canvas with id main-canvas,
 margin 10, green border width 4 and border radius 6 inside main-area.
@@ -70,7 +67,7 @@ Muzietto: when a thumbnail is selected I want its border to have double width
 Muzietto: when a thumbnail is selected I want its background color to be light
 grey
 
-Muzietto: remove the text from the left column
+Muzietto: remove the text from the left column (97687e)
 
 Muzietto: extract all the CSS from the html file and put it inside a style.css.
 link the css file from the html file
@@ -83,7 +80,7 @@ inside a file canvas,js
 Muzietto: extract the js code that handles the thumbnails and put it inside a
 thumbnails.js file
 
-Muzietto: move the js files inside a js directory
+Muzietto: move the js files inside a js directory (64579e)
 
 Muzietto: i want you to reorganize the code of canvas.js into an IIFE
 
@@ -94,7 +91,7 @@ functions
 
 Muzietto: inside canvas.js I don't want the iife to depend explicitly on window
 and document. create two global variables W and D before the iife and let the
-iife use them
+iife use them (b4fa95)
 
 Muzietto: format all html, css and js files in this project to use an indent of
 two spaces
@@ -108,7 +105,7 @@ MAFFIE object
 Muzietto: move the debounce function and every other helper function inside a
 new utils.js file inside the js directory
 
-Muzietto: mention the UTILS object inside the readme
+Muzietto: mention the UTILS object inside the readme (191fc1)
 
 Muzietto: are you able to send files out to a ftp endpoint?
 
@@ -140,12 +137,12 @@ starting to upload files
 Muzietto: Keep whitelist but also remove empty remote directories after upload
 
 Muzietto: add a DEFAULT_SKIP_DIRS parameter to the script to exclude directories
-from   the os.walk loop. 
+from the os.walk loop. (540196)
 
 Muzietto: when the svg files are drawn in the main canvas, they are all correct
 except one: file butterfly.svg contains violet entities, but the version drawn
 in the main canvas uses only black color. please draw in violet also in the main
-canvas.
+canvas. (d996b8)
 
 Muzietto: add a file selector titled "Immagine Addizionale" at the bottom of the
 left column. it allows the user to pick an image file from the desktop. when the
@@ -178,7 +175,7 @@ dimensions of the background image in the canvas. as the user changes the slider
 value, the background image in the canvas is redrawn in real time. moving the
 slider left means "zoom out". moving the slider right means "zoom in"
 
-Muzietto: the slider must be disabled when no image file is selected
+Muzietto: the slider must be disabled when no image file is selected (9c849a)
 
 Muzietto: use the upload script to upload the project as it is now
 
@@ -191,7 +188,8 @@ dimension of the red bordered div
 Muzietto: use the upload script to upload the project as it is now
 
 Muzietto: adjust the media query for a smartphone in portrait orientation.
-reduce the "marco copilot" text size and put all the thumbnails two per row
+reduce the "marco copilot" text size and put all the thumbnails 
+two per row (2dc03d)
 
 Muzietto: when the user brings the mouse on the main canvas, the cursor changes
 to "grab". while the user clicks the mouse on the main canvas the cursor changes
@@ -203,422 +201,6 @@ been chosen, the cursor on the main canvas must remain as before.
 
 Muzietto: when a background image is chosen and the user is clicking on the
 canvas (i.e. the cursor is in "grabbing" condition), the background image in the
-canvas must shift following the mouse movements
-
-Muzietto: use the upload script to upload the project as it is now
-Muzietto: make an HTML5 index.html file that shows two vertical divs with id
-left-column and main-area. main-area is on the right side and it occupies two
-thirds of the screen. left-column has a pink border size 2px. main-area has a
-blue border size 2px. all the CSS is inside the html file. both divs are as high
-as the whole screen.
-
-Muzietto: from now on, when I give you a measure through a pure number, i mean
-it as pixels
-
-Muzietto: give a margin 6 to both divs
-
-Muzietto: make 6 the total distance between the two divs
-
-Muzietto: make 8 the width of the borders, with border radius 12
-
-Muzietto: make 6 the left margin of the pink border. make 6 the right margin of
-the blue border
-
-Muzietto: place above the page a right horizontal div with id title, width 100%
-of the screen and height 10% of the screen. put inside the text "Cippirimerlo".
-adjust the height of the two older divs accordingly
-
-Muzietto: put inside title a red border with the same proportions as the pink
-and blue borders
-
-Muzietto: make 6 the top margin, the left margin and the right margin of the red
-border
-
-Muzietto: left-column must occupy 20% of the screen width. adjust main-area
-accordingly
-
-Muzietto: adjust the texts inside left-column and main-area to reflect the
-changes in width you just made
-
-Muzietto: from now on I don't care about your todo list. just managet it
-yourself
-
-Muzietto: put four thumbnails in the left column above the text. each thumbnail
-has the proportions of the main-area and displays one of the four svg files
-inside the svgs directory. each thumbnail has width 80% of the left column
-
-Muzietto: put a colored border with width 4 around each thumbnail. choose the
-colors yourself
-
-Muzietto: give padding 4 to the thumbnails
-
-Muzietto: remove the text from main-area. place a canvas with id main-canvas,
-margin 10, green border width 4 and border radius 6 inside main-area.
-
-Muzietto: make the thumbnails clickable, with a hovering text that shows the
-name of the file inside. when I click on a thumbnail make a console log that
-says "You clicked" and the name of the thumbnail.
-
-Muzietto: remove the file extension from the hovering texts and from the logs
-
-Muzietto: when I click a thumbnail, draw the svg file inside the main canvas
-transforming the vectors into canvas draw instructions. give the canvas border
-the same color of the thumbnail border. show me exactly everything you are doing
-and tell me whether you encounter problems
-
-Muzietto: when I resize the screen I want the canvas redrawn
-
-Muzietto: put a padding 8 to the main canvas
-
-Muzietto: when the page starts I want the first thumbnail selected and its
-content drawn in the main canvas
-
-Muzietto: when a thumbnail is selected I want its border to have double width
-
-Muzietto: when a thumbnail is selected I want its background color to be light
-grey
-
-Muzietto: remove the text from the left column
-
-Muzietto: extract all the CSS from the html file and put it inside a style.css.
-link the css file from the html file
-
-Muzietto: move the style.css file inside a css directory
-
-Muzietto: extract the javascript code that handles the main canvas and put it
-inside a file canvas,js
-
-Muzietto: extract the js code that handles the thumbnails and put it inside a
-thumbnails.js file
-
-Muzietto: move the js files inside a js directory
-
-Muzietto: i want you to reorganize the code of canvas.js into an IIFE
-
-Muzietto: I don't want resizeMainCanvas and drawSvgOnCanvas in the global scope.
-i want the iife to expose an API called MAFFIE that allows to execute the two
-functions. thumbnails.js must access the MAFFIE API when it needs the two
-functions
-
-Muzietto: inside canvas.js I don't want the iife to depend explicitly on window
-and document. create two global variables W and D before the iife and let the
-iife use them
-
-Muzietto: format all html, css and js files in this project to use an indent of
-two spaces
-
-Muzietto: there is a localhost server on port 8080. you may use that for your
-tests if you need it
-
-Muzietto: inside canvas.js move _lastSvgText and its setter/getter inside the
-MAFFIE object
-
-Muzietto: move the debounce function and every other helper function inside a
-new utils.js file inside the js directory
-
-Muzietto: mention the UTILS object inside the readme
-
-Muzietto: are you able to send files out to a ftp endpoint?
-
-Muzietto: I need you to prepare a script that uses SFTP
-
-Muzietto: please modify the upload_sftp_dir.py script. add lines at the
-beginning where I can set the following parameters: host, username, password,
-local-dir, remote-dir.
-
-Muzietto: add to upload_sftp_dir also a parameter to define the port
-
-Muzietto: what is the fallback value when DEFAULT_LOCAL_DIR is not set?
-
-Muzietto: use the current project root directory as fallback
-
-Muzietto: add a parameter DEFAULT_ALLOW_MISSING_HOST_KEY in the script. when it
-is True, the script will add the --allow-missing-host-key flag to the paramiko
-invocation
-
-Muzietto: i want a whitelist. patch the script to allow a list of strings
-DEFAULT_FILE_EXTENSIONS_TO_UPLOAD containing the file extensions that must be
-uploaded. the script will scan the root directory and upload all the files with
-extensions inside the list. each uploaded file will be obviously inside the
-correct directory.
-
-Muzietto: i want the script to empty the DEFAULT_REMOTE_DIR directory before
-starting to upload files
-
-Muzietto: Keep whitelist but also remove empty remote directories after upload
-
-Muzietto: add a DEFAULT_SKIP_DIRS parameter to the script to exclude directories
-from   the os.walk loop. 
-
-Muzietto: when the svg files are drawn in the main canvas, they are all correct
-except one: file butterfly.svg contains violet entities, but the version drawn
-in the main canvas uses only black color. please draw in violet also in the main
-canvas.
-
-Muzietto: add a file selector titled "Immagine Addizionale" at the bottom of the
-left column. it allows the user to pick an image file from the desktop. when the
-image is chosen it must be drawn as background in the main canvas. the image
-must be scaled to fill the canvas dimensions.
-
-Muzietto: add a button "Rimuovi Immagine" to clear the file input and to remove
-the image from the main canvas
-
-Muzietto: I want the button to be disabled when no image is loaded
-
-Muzietto: align horizontally the "rimuovi immagine" button exactly under the
-file upload button 
-
-Muzietto: add a button labeled "Scarica Immagine" at the bottom of the left
-column. when it is pressed a png copy of the main canvas is created and
-downloaded on the desktop
-
-Muzietto: align horizontally the last button with the other two. put a margin
-top 16 above the last button
-
-Muzietto: make 24 the gap bove the last button
-
-Muzietto: add a nice horizontal slider with id "additional-image-scaler" under
-the "choose file" button
-
-Muzietto: now use the scaler to scale the dimentions of the background image in
-the canvas. the current initial value of the slider corresponds to the initial
-dimensions of the background image in the canvas. as the user changes the slider
-value, the background image in the canvas is redrawn in real time. moving the
-slider left means "zoom out". moving the slider right means "zoom in"
-
-Muzietto: the slider must be disabled when no image file is selected
-
-Muzietto: use the upload script to upload the project as it is now
-
-Muzietto: change the "cippirimerlo" text into "Marco Copilot" and align it on
-the left
-
-Muzietto: enlarge "Marco Copilot" text size so to fill exactly the vertical
-dimension of the red bordered div
-
-Muzietto: use the upload script to upload the project as it is now
-
-Muzietto: adjust the media query for a smartphone in portrait orientation.
-reduce the "marco copilot" text size and put all the thumbnails two per row
-
-Muzietto: when the user brings the mouse on the main canvas, the cursor changes
-to "grab". while the user clicks the mouse on the main canvas the cursor changes
-to "grabbing"
-
-Muzietto: the grab/grabbing cursor changes on the main canvas must be performed
-only when the "immagine addizionale" file has been chosen. if no image file has
-been chosen, the cursor on the main canvas must remain as before.
-
-Muzietto: when a background image is chosen and the user is clicking on the
-canvas (i.e. the cursor is in "grabbing" condition), the background image in the
-canvas must shift following the mouse movements
-
-Muzietto: use the upload script to upload the project as it is now
-Muzietto: make an HTML5 index.html file that shows two vertical divs with id
-left-column and main-area. main-area is on the right side and it occupies two
-thirds of the screen. left-column has a pink border size 2px. main-area has a
-blue border size 2px. all the CSS is inside the html file. both divs are as high
-as the whole screen.
-
-Muzietto: from now on, when I give you a measure through a pure number, i mean
-it as pixels
-
-Muzietto: give a margin 6 to both divs
-
-Muzietto: make 6 the total distance between the two divs
-
-Muzietto: make 8 the width of the borders, with border radius 12
-
-Muzietto: make 6 the left margin of the pink border. make 6 the right margin of
-the blue border
-
-Muzietto: place above the page a right horizontal div with id title, width 100%
-of the screen and height 10% of the screen. put inside the text "Cippirimerlo".
-adjust the height of the two older divs accordingly
-
-Muzietto: put inside title a red border with the same proportions as the pink
-and blue borders
-
-Muzietto: make 6 the top margin, the left margin and the right margin of the red
-border
-
-Muzietto: left-column must occupy 20% of the screen width. adjust main-area
-accordingly
-
-Muzietto: adjust the texts inside left-column and main-area to reflect the
-changes in width you just made
-
-Muzietto: from now on I don't care about your todo list. just managet it
-yourself
-
-Muzietto: put four thumbnails in the left column above the text. each thumbnail
-has the proportions of the main-area and displays one of the four svg files
-inside the svgs directory. each thumbnail has width 80% of the left column
-
-Muzietto: put a colored border with width 4 around each thumbnail. choose the
-colors yourself
-
-Muzietto: give padding 4 to the thumbnails
-
-Muzietto: remove the text from main-area. place a canvas with id main-canvas,
-margin 10, green border width 4 and border radius 6 inside main-area.
-
-Muzietto: make the thumbnails clickable, with a hovering text that shows the
-name of the file inside. when I click on a thumbnail make a console log that
-says "You clicked" and the name of the thumbnail.
-
-Muzietto: remove the file extension from the hovering texts and from the logs
-
-Muzietto: when I click a thumbnail, draw the svg file inside the main canvas
-transforming the vectors into canvas draw instructions. give the canvas border
-the same color of the thumbnail border. show me exactly everything you are doing
-and tell me whether you encounter problems
-
-Muzietto: when I resize the screen I want the canvas redrawn
-
-Muzietto: put a padding 8 to the main canvas
-
-Muzietto: when the page starts I want the first thumbnail selected and its
-content drawn in the main canvas
-
-Muzietto: when a thumbnail is selected I want its border to have double width
-
-Muzietto: when a thumbnail is selected I want its background color to be light
-grey
-
-Muzietto: remove the text from the left column
-
-Muzietto: extract all the CSS from the html file and put it inside a style.css.
-link the css file from the html file
-
-Muzietto: move the style.css file inside a css directory
-
-Muzietto: extract the javascript code that handles the main canvas and put it
-inside a file canvas,js
-
-Muzietto: extract the js code that handles the thumbnails and put it inside a
-thumbnails.js file
-
-Muzietto: move the js files inside a js directory
-
-Muzietto: i want you to reorganize the code of canvas.js into an IIFE
-
-Muzietto: I don't want resizeMainCanvas and drawSvgOnCanvas in the global scope.
-i want the iife to expose an API called MAFFIE that allows to execute the two
-functions. thumbnails.js must access the MAFFIE API when it needs the two
-functions
-
-Muzietto: inside canvas.js I don't want the iife to depend explicitly on window
-and document. create two global variables W and D before the iife and let the
-iife use them
-
-Muzietto: format all html, css and js files in this project to use an indent of
-two spaces
-
-Muzietto: there is a localhost server on port 8080. you may use that for your
-tests if you need it
-
-Muzietto: inside canvas.js move _lastSvgText and its setter/getter inside the
-MAFFIE object
-
-Muzietto: move the debounce function and every other helper function inside a
-new utils.js file inside the js directory
-
-Muzietto: mention the UTILS object inside the readme
-
-Muzietto: are you able to send files out to a ftp endpoint?
-
-Muzietto: I need you to prepare a script that uses SFTP
-
-Muzietto: please modify the upload_sftp_dir.py script. add lines at the
-beginning where I can set the following parameters: host, username, password,
-local-dir, remote-dir.
-
-Muzietto: add to upload_sftp_dir also a parameter to define the port
-
-Muzietto: what is the fallback value when DEFAULT_LOCAL_DIR is not set?
-
-Muzietto: use the current project root directory as fallback
-
-Muzietto: add a parameter DEFAULT_ALLOW_MISSING_HOST_KEY in the script. when it
-is True, the script will add the --allow-missing-host-key flag to the paramiko
-invocation
-
-Muzietto: i want a whitelist. patch the script to allow a list of strings
-DEFAULT_FILE_EXTENSIONS_TO_UPLOAD containing the file extensions that must be
-uploaded. the script will scan the root directory and upload all the files with
-extensions inside the list. each uploaded file will be obviously inside the
-correct directory.
-
-Muzietto: i want the script to empty the DEFAULT_REMOTE_DIR directory before
-starting to upload files
-
-Muzietto: Keep whitelist but also remove empty remote directories after upload
-
-Muzietto: add a DEFAULT_SKIP_DIRS parameter to the script to exclude directories
-from   the os.walk loop. 
-
-Muzietto: when the svg files are drawn in the main canvas, they are all correct
-except one: file butterfly.svg contains violet entities, but the version drawn
-in the main canvas uses only black color. please draw in violet also in the main
-canvas.
-
-Muzietto: add a file selector titled "Immagine Addizionale" at the bottom of the
-left column. it allows the user to pick an image file from the desktop. when the
-image is chosen it must be drawn as background in the main canvas. the image
-must be scaled to fill the canvas dimensions.
-
-Muzietto: add a button "Rimuovi Immagine" to clear the file input and to remove
-the image from the main canvas
-
-Muzietto: I want the button to be disabled when no image is loaded
-
-Muzietto: align horizontally the "rimuovi immagine" button exactly under the
-file upload button 
-
-Muzietto: add a button labeled "Scarica Immagine" at the bottom of the left
-column. when it is pressed a png copy of the main canvas is created and
-downloaded on the desktop
-
-Muzietto: align horizontally the last button with the other two. put a margin
-top 16 above the last button
-
-Muzietto: make 24 the gap bove the last button
-
-Muzietto: add a nice horizontal slider with id "additional-image-scaler" under
-the "choose file" button
-
-Muzietto: now use the scaler to scale the dimentions of the background image in
-the canvas. the current initial value of the slider corresponds to the initial
-dimensions of the background image in the canvas. as the user changes the slider
-value, the background image in the canvas is redrawn in real time. moving the
-slider left means "zoom out". moving the slider right means "zoom in"
-
-Muzietto: the slider must be disabled when no image file is selected
-
-Muzietto: use the upload script to upload the project as it is now
-
-Muzietto: change the "cippirimerlo" text into "Marco Copilot" and align it on
-the left
-
-Muzietto: enlarge "Marco Copilot" text size so to fill exactly the vertical
-dimension of the red bordered div
-
-Muzietto: use the upload script to upload the project as it is now
-
-Muzietto: adjust the media query for a smartphone in portrait orientation.
-reduce the "marco copilot" text size and put all the thumbnails two per row
-
-Muzietto: when the user brings the mouse on the main canvas, the cursor changes
-to "grab". while the user clicks the mouse on the main canvas the cursor changes
-to "grabbing"
-
-Muzietto: the grab/grabbing cursor changes on the main canvas must be performed
-only when the "immagine addizionale" file has been chosen. if no image file has
-been chosen, the cursor on the main canvas must remain as before.
-
-Muzietto: when a background image is chosen and the user is clicking on the
-canvas (i.e. the cursor is in "grabbing" condition), the background image in the
-canvas must shift following the mouse movements
+canvas must shift following the mouse movements (11bc22)
 
 Muzietto: use the upload script to upload the project as it is now
